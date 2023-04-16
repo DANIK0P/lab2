@@ -14,6 +14,7 @@ import org.kohsuke.args4j.Option;
 
 public class Ls {
 
+
     @Option(name = "-l", usage = "Enable long format listing")
     private boolean isLongFormat;
 
@@ -29,6 +30,7 @@ public class Ls {
     @Argument(usage = "Directory or file")
     private File directoryOrFile;
 
+
     public void execute(String[] args) throws IOException {
         CmdLineParser parser = new CmdLineParser(this);
         try {
@@ -40,6 +42,7 @@ public class Ls {
             return;
         }
 
+
         List<String> fileNames;
         if (directoryOrFile.isDirectory()) {
             fileNames = Arrays.asList(directoryOrFile.list());
@@ -50,25 +53,14 @@ public class Ls {
 
         StringBuilder outputBuilder = new StringBuilder();
         for (String fileName : fileNames) {
-            if (isLongFormat) {
-                File file = new File(directoryOrFile, fileName);
-                String permissions = String.format("%3s", Integer.toBinaryString(file.canExecute() ? 1 : 0)
-                        + Integer.toBinaryString(file.canRead() ? 1 : 0)
-                        + Integer.toBinaryString(file.canWrite() ? 1 : 0)).replace(' ', '0');
-                String lastModified = getLastModifiedString(file);
-                String size = getSizeString(file);
-                outputBuilder.append(isReverse ? String.format("%s %s %s %s\n", size, lastModified, permissions, fileName)
-                        : String.format("%s %s %s %s\n", fileName, permissions, lastModified, size));
-            } else if (isHumanReadable) {
-                File file = new File(directoryOrFile, fileName);
-                String size = getHumanReadableSizeString(file);
-                String permissions = getPermissionsString(file);
-                outputBuilder.append(isReverse ? String.format("%s %s %s\n", size, permissions, fileName)
-                        : String.format("%s %s %s\n", fileName, permissions, size));
-            } else {
+            if (isLongFormat)
+                outputBuilder.append(longFormat(fileName));
+            else if (isHumanReadable)
+                outputBuilder.append(humanReadable(fileName));
+            else
                 outputBuilder.append(String.format("%s\n", fileName));
-            }
         }
+
 
         if (outputFile != null) {
             FileWriter writer = new FileWriter(outputFile);
@@ -79,22 +71,60 @@ public class Ls {
         }
     }
 
-    private String getPermissionsString(File file) {
+
+    public String longFormat(String fileName) {
+        if (!directoryOrFile.exists()) return fileName + " The file doesn't exist";
+        File file;
+        if (directoryOrFile.isDirectory()) {
+            file = new File(directoryOrFile, fileName);
+        } else {
+            file = directoryOrFile;
+        }
+        String permissions = String.format("%3s", Integer.toBinaryString(file.canExecute() ? 1 : 0)
+                + Integer.toBinaryString(file.canRead() ? 1 : 0)
+                + Integer.toBinaryString(file.canWrite() ? 1 : 0)).replace(' ', '0');
+        String lastModified = getLastModifiedString(file);
+        String size = getSizeString(file);
+        return isReverse ? String.format("%s %s %s %s\n", size, lastModified, permissions, fileName)
+                : String.format("%s %s %s %s\n", fileName, permissions, lastModified, size);
+    }
+
+
+    public String humanReadable(String fileName) {
+        if (!directoryOrFile.exists()) return fileName + " The file doesn't exist";
+        File file;
+        if (directoryOrFile.isDirectory()) {
+            file = new File(directoryOrFile, fileName);
+        } else {
+            file = directoryOrFile;
+        }
+        String size = getHumanReadableSizeString(file);
+        String permissions = getPermissionsString(file);
+        return isReverse ? String.format("%s %s %s\n", size, permissions, fileName)
+                : String.format("%s %s %s\n", fileName, permissions, size);
+    }
+
+
+    public String getPermissionsString(File file) {
         return (file.canRead() ? "r" : "-") +
                 (file.canWrite() ? "w" : "-") +
                 (file.canExecute() ? "x" : "-");
     }
 
-    private String getLastModifiedString(File file) {
+
+    public String getLastModifiedString(File file) {
+        if (!file.exists()) return "The file doesn't exist";
         long lastModified = file.lastModified();
         return String.format("%tF %<tT", lastModified);
     }
 
-    private String getSizeString(File file) {
+
+    public String getSizeString(File file) {
         return String.format("%d", file.length());
     }
 
-    private String getHumanReadableSizeString(File file) {
+
+    public String getHumanReadableSizeString(File file) {
         long size = file.length();
         String[] units = {"B", "KB", "MB", "GB", "TB"};
         int index = 0;
