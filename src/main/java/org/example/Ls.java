@@ -15,8 +15,6 @@ import org.kohsuke.args4j.Option;
 public class Ls {
 
 
-//4. все методы public, разберитесь с точки зрения доступа к ним
-
     @Option(name = "-l", usage = "Enable long format listing")
     private boolean isLongFormat;
 
