@@ -31,7 +31,7 @@ public class Ls {
     private File directoryOrFile;
 
 
-    public void execute(String[] args) throws Exception {
+    public void execute(String[] args) throws IOException {
         CmdLineParser parser = new CmdLineParser(this);
         try {
             parser.parseArgument(args);
@@ -42,6 +42,13 @@ public class Ls {
             return;
         }
 
+        try {
+            if (!directoryOrFile.exists()) throw new IOException();
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+            System.out.print("IOException");
+            return;
+        }
 
         List<String> fileNames;
         if (directoryOrFile.isDirectory()) {
@@ -73,8 +80,7 @@ public class Ls {
     }
 
 
-    public String longFormat(String fileName) throws Exception {
-        if (!directoryOrFile.exists()) throw new Exception();
+    public String longFormat(String fileName) {
         File file;
         if (directoryOrFile.isDirectory()) {
             file = new File(directoryOrFile, fileName);
@@ -91,8 +97,7 @@ public class Ls {
     }
 
 
-    public String humanReadable(String fileName) throws Exception {
-        if (!directoryOrFile.exists()) throw new Exception();
+    public String humanReadable(String fileName) {
         File file;
         if (directoryOrFile.isDirectory()) {
             file = new File(directoryOrFile, fileName);
@@ -106,26 +111,25 @@ public class Ls {
     }
 
 
-    public String getPermissionsString(File file) {
+    private String getPermissionsString(File file) {
         return (file.canRead() ? "r" : "-") +
                 (file.canWrite() ? "w" : "-") +
                 (file.canExecute() ? "x" : "-");
     }
 
 
-    public String getLastModifiedString(File file) throws IOException {
-        if (!file.exists()) throw new IOException();
+    private String getLastModifiedString(File file) {
         long lastModified = file.lastModified();
         return String.format("%tF %<tT", lastModified);
     }
 
 
-    public String getSizeString(File file) {
+    private String getSizeString(File file) {
         return String.format("%d", file.length());
     }
 
 
-    public String getHumanReadableSizeString(File file) {
+    private String getHumanReadableSizeString(File file) {
         long size = file.length();
         String[] units = {"B", "KB", "MB", "GB", "TB"};
         int index = 0;
