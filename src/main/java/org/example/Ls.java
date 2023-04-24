@@ -15,6 +15,8 @@ import org.kohsuke.args4j.Option;
 public class Ls {
 
 
+//4. все методы public, разберитесь с точки зрения доступа к ним
+
     @Option(name = "-l", usage = "Enable long format listing")
     private boolean isLongFormat;
 
@@ -31,7 +33,7 @@ public class Ls {
     private File directoryOrFile;
 
 
-    public void execute(String[] args) throws IOException {
+    public void execute(String[] args) throws Exception {
         CmdLineParser parser = new CmdLineParser(this);
         try {
             parser.parseArgument(args);
@@ -50,6 +52,7 @@ public class Ls {
         } else {
             fileNames = Collections.singletonList(directoryOrFile.getName());
         }
+
 
         StringBuilder outputBuilder = new StringBuilder();
         for (String fileName : fileNames) {
@@ -72,8 +75,8 @@ public class Ls {
     }
 
 
-    public String longFormat(String fileName) {
-        if (!directoryOrFile.exists()) return fileName + " The file doesn't exist";
+    public String longFormat(String fileName) throws Exception {
+        if (!directoryOrFile.exists()) throw new Exception();
         File file;
         if (directoryOrFile.isDirectory()) {
             file = new File(directoryOrFile, fileName);
@@ -90,8 +93,8 @@ public class Ls {
     }
 
 
-    public String humanReadable(String fileName) {
-        if (!directoryOrFile.exists()) return fileName + " The file doesn't exist";
+    public String humanReadable(String fileName) throws Exception {
+        if (!directoryOrFile.exists()) throw new Exception();
         File file;
         if (directoryOrFile.isDirectory()) {
             file = new File(directoryOrFile, fileName);
@@ -112,8 +115,8 @@ public class Ls {
     }
 
 
-    public String getLastModifiedString(File file) {
-        if (!file.exists()) return "The file doesn't exist";
+    public String getLastModifiedString(File file) throws IOException {
+        if (!file.exists()) throw new IOException();
         long lastModified = file.lastModified();
         return String.format("%tF %<tT", lastModified);
     }
